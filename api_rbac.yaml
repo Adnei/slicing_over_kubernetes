@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: api-slicing
+    labels:
+        name: api
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: api-slicing-svc
+    namespace: api-slicing
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: api-slicing-role
+    namespace: api-slicing
+rules:
+    - apiGroups:
+        - ''
+      resources:
+        - 'pods'
+      verbs:
+        - 'create'
+        - 'delete'
+        - 'get'
+        - 'list'
+        - 'patch'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: api-slicing-rolebind
+    namespace: api-slicing
+subjects:
+    - kind: ServiceAccount
+      name: api-slicing-svc
+      namespace: api-slicing
+roleRef:
+    kind: Role
+    name: api-slicing-role
+    apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-slicing-secret
+  namespace: api-slicing
+  annotations:
+    kubernetes.io/service-account.name: api-slicing-svc
+type: kubernetes.io/service-account-token

@@ -1,0 +1,5 @@
+get toke with: 
+kubectl describe secret -n api-slicing api-slicing-secret
+
+after applying api_rbac.yaml, update to cluster scope with:
+kubectl create clusterrolebinding --serviceaccount=default:default --clusterrole=view default-sa-view-access
