@@ -18,9 +18,10 @@ metadata:
     namespace: api-slicing
 rules:
     - apiGroups:
-        - ''
+        - 'batch'
       resources:
         - 'pods'
+        - 'jobs'
       verbs:
         - 'create'
         - 'delete'
