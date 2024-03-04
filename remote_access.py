@@ -1,12 +1,11 @@
+# DEPRECATED FILE. WILL BE REMOVED SOON
 # Load venv from kubernetes package
 
 from kubernetes import client, config
 
 
 def main():
-    auth_token = (
-        "<get token with: kubectl describe secret -n api-slicing api-slicing-secret>"
-    )
+    auth_token = "<kubectl describe secret -n api-slicing api-slicing-secret>"
     client_config = client.Configuration()
     client_config.host = "https://10.10.225.91:6443"
     # no ssl security for now
