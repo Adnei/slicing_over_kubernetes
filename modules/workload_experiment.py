@@ -17,20 +17,7 @@ class WorkloadExperiment(Experiment):
         super().__init__(cluster, name, namespace)
         self.node = node
         self.image = image
-
-    def start(self):
-        def _check_for_job():
-            resp = None
-            try:
-                resp = self.cluster.batch_v1_api.read_namespaced_job(
-                    name=self.name, namespace=self.namespace
-                )
-            except ApiException as e:
-                if e.status != 404:
-                    print("API error while reading namespaced job: ", e)
-                    exit(1)
-            return resp
-
+    def get_results(self):
         def _wait_for_job():
             watcher = watch.Watch()
             for event in watcher.stream(
@@ -57,6 +44,28 @@ class WorkloadExperiment(Experiment):
                 if not obj.status.active and obj.status.failed:
                     watcher.stop()
                     raise Exception("Job Failed")
+        print("Waiting for the job to finish")
+        delete_opt_body = client.V1DeleteOptions(propagation_policy="Background")
+        _wait_for_job()
+        print("Deleting job")
+        self.cluster.batch_v1_api.delete_namespaced_job(
+            name=self.name, body=delete_opt_body, namespace=self.namespace
+        )
+        # @TODO
+        #    - Salvar informações do experimento
+        #    - Gerar .csv do intervalo de duração do experimento (usar API Grafana ou Prometheus) 
+    def start(self):
+        def _check_for_job():
+            resp = None
+            try:
+                resp = self.cluster.batch_v1_api.read_namespaced_job(
+                    name=self.name, namespace=self.namespace
+                )
+            except ApiException as e:
+                if e.status != 404:
+                    print("API error while reading namespaced job: ", e)
+                    exit(1)
+            return resp
 
         response = _check_for_job()
         if not response:
@@ -84,13 +93,3 @@ class WorkloadExperiment(Experiment):
                 namespace=self.namespace, body=job_body
             )
             print("Job created!")
-            print("Waiting for the job to finish")
-            delete_opt_body = client.V1DeleteOptions(propagation_policy="Background")
-            _wait_for_job()
-            print("Deleting job")
-            self.cluster.batch_v1_api.delete_namespaced_job(
-                name=self.name, body=delete_opt_body, namespace=self.namespace
-            )
-            # @TODO
-            #    - Salvar informações do experimento
-            #    - Gerar .csv do intervalo de duração do experimento (usar API Grafana ou Prometheus)

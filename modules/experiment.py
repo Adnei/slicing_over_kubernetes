@@ -20,3 +20,6 @@ class Experiment:
     @abc.abstractmethod
     def start(self):
         return
+    @abc.abstractmethod
+    def get_results(self):
+        return
