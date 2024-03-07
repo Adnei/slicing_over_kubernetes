@@ -29,6 +29,25 @@ def part_setup(cluster):
     return experiment_part
     
 def main():
+    ############# Descrição das imagens #############
+    ## test1_regular (https://hub.docker.com/r/eduardogomescampos/test1_regular)
+    # 1.0.0: não funciona
+    # 1.1.0: dura 6 minutos e oferece uma carga periódica de 3 instâncias executando sqrt() que atua por 10 segundos em cada um dos 18 ciclos de 20 segundos
+    # 1.2.0: dura 6 minutos e oferece uma carga periódica de 3 instâncias executando sqrt() que atua por 1 min em cada um dos 3 ciclos de 2 min
+    # 1.3.0: dura 16 minutos e oferece uma carga periódica de 15 instâncias executando sync() que atua por 1 min em cada um dos 8 ciclos de 2 min
+    # 1.3.1: dura 16 minutos e oferece uma carga periódica de 10 instâncias executando sync() que atua por 1 min em cada um dos 8 ciclos de 2 min
+    # 1.4.0: dura 6 minutos e oferece uma carga periódica de 15 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
+    # 1.4.1: dura 6 minutos e oferece uma carga periódica de 10 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
+    # 1.4.2: dura 6 minutos e oferece uma carga periódica de 5 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
+    ## test1_hamperer (https://hub.docker.com/r/eduardogomescampos/test1_hamperer)
+    # 1.0.0: não funciona
+    # 1.1.0: dura 6 minutos e oferece uma carga constante de 3 instâncias executando sqrt()
+    # 1.1.1: dura 30 minutos e oferece uma carga constante de 3 instâncias executando sqrt()
+    # 1.1.2: dura 30 minutos e oferece uma carga constante de 2 instâncias executando sqrt()
+    # 1.1.3: dura 36 minutos e oferece uma carga constante de 2 instâncias executando sqrt()
+    # 1.1.4: dura 6 minutos e oferece uma carga constante de 2 instâncias executando sqrt()
+    ## empty_test (https://hub.docker.com/repository/docker/eduardogomescampos/empty_test)
+    # 1.0.0: dura 5 segundos e não executa nada após subir
     auth_token ""
     sfi2_cluster = KubernetesCluster(auth_token)
     experiment_list = []
