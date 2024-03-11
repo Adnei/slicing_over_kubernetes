@@ -39,6 +39,9 @@ def main():
     # 1.4.0: dura 6 minutos e oferece uma carga periódica de 15 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
     # 1.4.1: dura 6 minutos e oferece uma carga periódica de 10 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
     # 1.4.2: dura 6 minutos e oferece uma carga periódica de 5 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
+    # 1.4.3: dura 6 minutos e oferece uma carga periódica de 2 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
+    # 1.4.4: dura 6 minutos e oferece uma carga periódica de 7 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
+    # 1.4.5: dura 6 minutos e oferece uma carga periódica de 12 instâncias executando sync() que atua por 1 min em cada um dos 3 ciclos de 2 min
     ## test1_hamperer (https://hub.docker.com/r/eduardogomescampos/test1_hamperer)
     # 1.0.0: não funciona
     # 1.1.0: dura 6 minutos e oferece uma carga constante de 3 instâncias executando sqrt()
