@@ -18,10 +18,12 @@ class WorkloadExperiment(Experiment):
         namespace="api-slicing",
         node=None,
         image="eduardogomescampos/test1_hamperer:1.1.0",
+        cmdline="default"
     ):
         super().__init__(cluster, name, namespace)
         self.node = node
         self.image = image
+        self.cmdline = cmdline
     def get_results(self):
         def _wait_for_job():
             watcher = watch.Watch()
@@ -52,6 +54,7 @@ class WorkloadExperiment(Experiment):
         print("Waiting for the job to finish")
         delete_opt_body = client.V1DeleteOptions(propagation_policy="Background")
         _wait_for_job()
+        
         print("Deleting job")
         self.cluster.batch_v1_api.delete_namespaced_job(
             name=self.name, body=delete_opt_body, namespace=self.namespace
@@ -98,81 +101,110 @@ class WorkloadExperiment(Experiment):
                 namespace=self.namespace, body=job_body
             )
             print("Job created!")
-            
-    def get_data_df(self, iteration): 
 
-        # saving start and end time of the experiment
-        start = self.start_time
-        end = self.end_time
-        date_format = "%Y-%m-%dT%H:%M:%SZ"
-        # converting start and end time to unix
+    def get_data_df(self, iteration): 
+        
+        start = str(self.start_time)
+        end = str(self.end_time)
+        date_format = "%Y-%m-%d %H:%M:%S%z"
+
         date_obj_start = datetime.datetime.strptime(start, date_format)
         date_obj_end = datetime.datetime.strptime(end, date_format)
-        # converting datetime object to integer
+
         unix_start = int(date_obj_start.timestamp())
         unix_end = int(date_obj_end.timestamp())
-    
-        metrics = ['scaph_host_power_microwatts{instance="192.168.189.100:8080"}/1000000&start='+str(unix_start)+'&end='+str(unix_end)+'&step=5s' , 
-                    'sum(scaph_process_cpu_usage_percentage{instance="192.168.189.100:8080"})&start='+str(unix_start)+'&end='+str(unix_end)+'&step=5s',
-                    'sum(scaph_process_memory_bytes{instance="192.168.189.100:8080"})&start='+str(unix_start)+'&end='+str(unix_end)+'&step=5s'
-                ]
-        data = []
 
-        # getting responses for each metric and appending them
+        if self.node == "worker1":
+            instance = "192.168.235.131:8080" #scaphandre IP for worker 1 and prometheus' port (8080)
+        elif self.node == "worker2":
+            instance = "192.168.189.73:8080"
+        elif self.node == "worker3":
+            instance = "192.168.182.42:8080"
+        elif self.node == "worker4":
+            instance = "192.168.199.185:8080"
+        elif self.node == "worker5":
+            instance = "192.168.42.68:8080"
+        else:
+            instance = "" 
+            
+        metrics = ['scaph_host_power_microwatts{instance="'+instance+'"}/1000000'+'&start='+str(unix_start)+'&end='+str(unix_end)+'&step=1s',
+                    'sum(scaph_process_cpu_usage_percentage{instance="'+instance+'"})'+'&start='+str(unix_start)+'&end='+str(unix_end)+'&step=1s',
+                    'sum(scaph_process_memory_bytes{instance="'+instance+'"})'+'&start='+str(unix_start)+'&end='+str(unix_end)+'&step=1s',
+                    'scaph_host_cpu_frequency{instance="'+instance+'"}'+'&start='+str(unix_start)+'&end='+str(unix_end)+'&step=1s',
+                    'sum(scaph_process_power_consumption_microwatts{instance="'+instance+'",cmdline="'+self.cmdline+'"})'+'&start='+str(unix_start)+'&end='+str(unix_end)+'&step=1s',
+                    'sum(scaph_process_cpu_usage_percentage{instance="'+instance+'",cmdline="'+self.cmdline+'"})'+'&start='+str(unix_start)+'&end='+str(unix_end)+'&step=1s',
+                    'scaph_process_memory_bytes{instance="'+instance+'",cmdline="'+self.cmdline+'"}'+'&start='+str(unix_start)+'&end='+str(unix_end)+'&step=1s']
+
+        data = []
         for x in metrics:
             response = requests.get('http://10.10.225.91:30000/api/v1/query_range?query='+x)
-            data.append(response) 
-
-        # creating different json objects for each metric
+            data.append(response)
+            
         powerJson = data[0].json()
         cpuJson = data[1].json()
         memJson = data[2].json()
-        
-        timeStamps = []
-        power = []
+        freqJson = data[3].json()
+        powerPJson = data[4].json()
+        cpuPJson = data[5].json()
+        memPJson = data[6].json()
+
+        TScpu = []
         cpu = []
+        TSpower = []
+        power = []
+        TSmem = []
         mem = []
-
-        # creates list of timestamps from the CPU json and a list of CPU values in the same order as the timestamps
+        TSfreq = []
+        freq = []
+        TSpowerP = []
+        powerP = []
+        TScpuP =[]
+        cpuP = []
+        TSmemP =[]
+        memP = []
+        
         for values in cpuJson['data']['result'][0]['values']:
-            timeStamps.append(values[0])
+            TScpu.append(values[0])
             cpu.append(values[1])
-
-        # creates list of Power values in the same order as the timestamps
         for values in powerJson['data']['result'][0]['values']:
-            power.append(values)
-
-        # creates list of memory (RAM) values in the same order as the timestamps
+            TSpower.append(values[0])
+            power.append(values[1])
         for values in memJson['data']['result'][0]['values']:
-            mem.append(values)
+            TSmem.append(values[0])
+            mem.append(values[1])
+        for values in freqJson['data']['result'][0]['values']:
+            TSfreq.append(values[0])
+            freq.append(values[1])
+        for values in powerPJson['data']['result'][0]['values']:
+            TSpowerP.append(values[0])
+            powerP.append(values[1])
+        for values in cpuPJson['data']['result'][0]['values']:
+            TScpuP.append(values[0])
+            cpuP.append(values[1])
+        for values in memPJson['data']['result'][0]['values']:
+            TSmemP.append(values[0])
+            memP.append(values[1])
 
-        # creates dataframe with timestamps as index and a column with CPU values
-        df = pd.DataFrame( {'CPU %': cpu}, 
-                        index = timeStamps)
+        DFcpu = pd.DataFrame( {'CPU % - Worker': cpu}, 
+                        index = TScpu)
+        DFpower = pd.DataFrame( {'PWR - Worker (W)': power}, 
+                        index = TSpower)
+        DFmem = pd.DataFrame( {'RAM - Worker (B)': mem}, 
+                        index = TSmem)
+        DFfreq = pd.DataFrame( {'CPU FREQ - Worker (MHz)': freq}, 
+                        index = TSfreq)
+        DFcpuP = pd.DataFrame( {'CPU % - Process': cpuP}, 
+                        index = TScpuP)
+        DFpowerP = pd.DataFrame( {'PWR - Process (W)': powerP}, 
+                        index = TSpowerP)
+        DFmemP = pd.DataFrame( {'RAM - Process (B)': memP}, 
+                        index = TSmemP)
+        
+        dfs = [DFpower, DFmem, DFfreq, DFcpuP, DFpowerP, DFmemP]
+        dataframe = DFcpu.join(dfs)
 
-        # adds column with POWER values (verifies if the timestamps match)
-        dfPower = []
-        for index in range(len(df.index)):
-            if df.index[index] == power[index][0]:
-                dfPower.append(power[index][1]) 
-            else:
-                dfPower.append(np.nan) # if the timestamps dont match, fill element with None
-        df['Power'] = dfPower
+        exec = iteration + 1
+        dataframe['Part ID'] = self.name
+        dataframe['Exec ID'] = exec
 
-        # adds column with memory (RAM) values (verifies if the timestamps match)
-        dfMem = []
-        for index in range(len(df.index)):
-            if df.index[index] == mem[index][0]:
-                dfMem.append(mem[index][1]) 
-            else:
-                dfMem.append(np.nan) # if the timestamps dont match, fill with None
-        df['Mem'] = dfMem
-
-        exec = iteration + 1 # execution number
-       
-        # creates columns for part ID and execution ID
-        df['Part ID'] = self.name
-        df['Exec ID'] = exec
-
-        # returns dataframe that will be saved to csv file in main
-        return df 
+        return dataframe
