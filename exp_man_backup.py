@@ -126,7 +126,13 @@ def main():
                 experiment.start()
             for experiment in experiment_part:
                 experiment.get_results()
+            for experiment in experiment_part:
+                df_list.append(experiment.get_data_df(i))
         print(f"Finished execution number {i + 1}")
     print("Finishing experiment")
+
+    pd.concat(df_list).to_csv('experiment.csv') #MUDAR NOME PARA O NOME DESEJADO 
+    print("CSV file created")
+
 if __name__ == "__main__":
     main()
